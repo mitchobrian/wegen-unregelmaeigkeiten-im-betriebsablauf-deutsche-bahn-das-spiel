@@ -9,7 +9,7 @@ function cache() {
   el.delay = document.getElementById('hud-delay');
   el.temp = document.getElementById('meter-temp');
   el.tempLabel = document.getElementById('meter-temp-label');
-  el.crowd = document.getElementById('meter-crowd');
+  el.progress = document.getElementById('meter-progress');
   el.cached = true;
 }
 
@@ -25,6 +25,6 @@ export const hud = {
     el.tempLabel.textContent = state.tempLabel;
     el.temp.style.width = `${Math.min(100, state.temp)}%`;
     el.temp.style.background = state.tempColor;
-    el.crowd.style.width = `${Math.min(100, state.crowd)}%`;
+    el.progress.style.width = `${Math.round((state.progress || 0) * 100)}%`;
   },
 };

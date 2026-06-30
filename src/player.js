@@ -2,19 +2,19 @@
 
 import { TILE } from './level.js';
 
-const MOVE_SPEED = 235;     // px/s
-const ACCEL = 1800;
-const FRICTION = 1700;
+const MOVE_SPEED = 245;     // px/s
+const ACCEL = 1900;
+const FRICTION = 1800;
 const GRAVITY = 1850;       // etwas geringer -> floatiger, leichter steuerbar
-const JUMP_VELOCITY = -865; // höherer Sprung: ~6 Felder, erreicht alle Plattformen
-const MAX_FALL = 950;
+const JUMP_VELOCITY = -905; // hoch genug, um Hindernisse zu überspringen
+const MAX_FALL = 980;
 const COYOTE_TIME = 0.12;   // großzügige Sprung-Toleranz nach Kantenabgang
 const JUMP_BUFFER = 0.14;
 
 export class Player {
   constructor(spawn) {
-    this.w = 22;
-    this.h = 30;
+    this.w = 52;
+    this.h = 96;
     this.reset(spawn);
   }
 
@@ -31,21 +31,28 @@ export class Player {
     this.jumpBuffer = 0;
     this.alive = true;
     this.walkPhase = 0;
+    this.slip = 0; // rutschiger Boden (nasser Boden / Kaffee)
   }
 
   get powered() { return this.powerTime > 0; }
 
   update(dt, level, input, speedFactor) {
+    // Rutschiger Boden senkt Beschleunigung & Reibung (man schlittert)
+    if (this.slip > 0) this.slip -= dt;
+    const slippery = this.slip > 0;
+    const accel = slippery ? ACCEL * 0.4 : ACCEL;
+    const fric = slippery ? FRICTION * 0.12 : FRICTION;
+
     // Horizontale Steuerung (durch Überfüllung gebremst)
     const targetDir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
     const maxSpeed = MOVE_SPEED * speedFactor;
     if (targetDir !== 0) {
-      this.vx += targetDir * ACCEL * dt;
+      this.vx += targetDir * accel * dt;
       this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
       this.facing = targetDir;
     } else {
       const sign = Math.sign(this.vx);
-      this.vx -= sign * FRICTION * dt;
+      this.vx -= sign * fric * dt;
       if (Math.sign(this.vx) !== sign) this.vx = 0;
     }
 
@@ -114,20 +121,35 @@ export class Player {
     // Blinken bei Unverwundbarkeit
     if (this.invuln > 0 && Math.floor(this.invuln * 12) % 2 === 0) return;
 
-    const bob = this.onGround ? Math.sin(this.walkPhase) * 1.5 : 0;
-    // Körper (Reisemantel)
+    const w = this.w, h = this.h;
+    const moving = this.onGround && Math.abs(this.vx) > 12;
+    const bob = this.onGround ? Math.sin(this.walkPhase) * 2 : 0;
+    const step = moving ? Math.sin(this.walkPhase) * h * 0.06 : 0;
+    const legH = h * 0.26, legW = w * 0.22;
+
+    // Beine (laufend versetzt)
+    ctx.fillStyle = '#26354a';
+    ctx.fillRect(x + w * 0.18, y + h - legH + step, legW, legH - step);
+    ctx.fillRect(x + w * 0.6, y + h - legH - step, legW, legH + step);
+    // Reisemantel / Körper
     ctx.fillStyle = this.powered ? '#ffd60a' : '#1f6fb2';
-    ctx.fillRect(x, y + 8 + bob, this.w, this.h - 8);
+    ctx.fillRect(x + w * 0.08, y + h * 0.28 + bob, w * 0.84, h * 0.5);
+    // Schal
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(x + w * 0.18, y + h * 0.26 + bob, w * 0.64, h * 0.06);
     // Kopf
     ctx.fillStyle = '#f1c79b';
-    ctx.fillRect(x + 4, y + bob, this.w - 8, 12);
-    // Rucksack/Koffer hinten
+    ctx.fillRect(x + w * 0.26, y + h * 0.04 + bob, w * 0.48, h * 0.22);
+    // Haar
+    ctx.fillStyle = '#3a2d22';
+    ctx.fillRect(x + w * 0.24, y + h * 0.03 + bob, w * 0.52, h * 0.07);
+    // Rucksack hinten
     ctx.fillStyle = '#9a3b3b';
-    const bx = this.facing > 0 ? x - 4 : x + this.w - 2;
-    ctx.fillRect(bx, y + 12 + bob, 6, 12);
-    // Augen-Richtung
+    const bx = this.facing > 0 ? x - w * 0.12 : x + w - w * 0.02;
+    ctx.fillRect(bx, y + h * 0.32 + bob, w * 0.14, h * 0.3);
+    // Auge in Laufrichtung
     ctx.fillStyle = '#222';
-    const ex = this.facing > 0 ? x + this.w - 8 : x + 4;
-    ctx.fillRect(ex, y + 4 + bob, 3, 3);
+    const ex = this.facing > 0 ? x + w * 0.6 : x + w * 0.28;
+    ctx.fillRect(ex, y + h * 0.12 + bob, 4, 5);
   }
 }

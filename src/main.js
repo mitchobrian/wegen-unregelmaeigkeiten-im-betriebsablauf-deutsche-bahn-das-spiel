@@ -14,7 +14,25 @@ const canvas = $('game');
 const SCREENS = ['screen-start', 'screen-name', 'screen-levels', 'screen-help', 'screen-board', 'screen-pause', 'screen-result'];
 function showScreen(id) {
   SCREENS.forEach((s) => $(s).classList.toggle('hidden', s !== id));
-  if (id) { hud.hide(); $('touch-controls').classList.add('hidden'); $('ingame-controls').classList.add('hidden'); }
+  if (id) { hud.hide(); $('touch-controls').classList.add('hidden'); $('ingame-controls').classList.add('hidden'); $('goal-toast').classList.add('hidden'); }
+}
+
+// Kurzer Ziel-Hinweis beim Levelstart.
+function showGoalToast(def) {
+  const t = $('goal-toast');
+  const tempHint = def.theme === 'cold' ? 'Heizung defekt – wärm dich an <strong>☕/🍷</strong>'
+    : def.theme === 'heat' ? 'Klima defekt – kühl dich mit <strong>🧊/Ventilator</strong>'
+    : 'Klima dreht durch – <strong>🧊</strong> und <strong>☕</strong> helfen';
+  t.innerHTML = `<strong>Level ${def.id}: ${def.name}</strong><br>` +
+    `Lauf nach rechts zum <strong>Ausstieg →</strong> · sammle <strong>€</strong> für Punkte · ${tempHint}`;
+  t.classList.remove('hidden');
+  void t.offsetWidth; // reflow → Übergang greift
+  t.classList.add('show');
+  clearTimeout(showGoalToast._t);
+  showGoalToast._t = setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.classList.add('hidden'), 400);
+  }, 3800);
 }
 function hideAllScreens() { SCREENS.forEach((s) => $(s).classList.add('hidden')); }
 
@@ -40,6 +58,7 @@ const game = new Game(canvas, {
 function startLevel(def) {
   hideAllScreens();
   showGameUI();
+  showGoalToast(def);
   game.start(def);
 }
 

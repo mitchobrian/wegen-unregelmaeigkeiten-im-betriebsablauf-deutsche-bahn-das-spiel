@@ -57,8 +57,8 @@
             <div class="meter-bar"><div class="meter-fill" id="meter-temp"></div></div>
           </div>
           <div class="meter">
-            <span class="meter-label">Überfüllung</span>
-            <div class="meter-bar"><div class="meter-fill crowd" id="meter-crowd"></div></div>
+            <span class="meter-label">🚪 bis Ausstieg</span>
+            <div class="meter-bar"><div class="meter-fill progress" id="meter-progress"></div></div>
           </div>
           <div class="meter delay">
             <span class="meter-label">Verspätung</span>
@@ -162,6 +162,9 @@
           <button class="btn ghost" id="btn-result-menu">Zum Fahrplan</button>
         </div>
       </section>
+
+      <!-- Kurzer Ziel-Hinweis beim Levelstart -->
+      <div id="goal-toast" class="goal-toast hidden" aria-hidden="true"></div>
 
       <!-- Dauerhaft sichtbare Steuerungs-Hilfe (Desktop) -->
       <div id="ingame-controls" class="ingame-controls hidden" aria-hidden="true">
